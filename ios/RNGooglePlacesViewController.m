@@ -2,7 +2,6 @@
 #import "NSMutableDictionary+GMSPlace.h"
 
 #import <GooglePlaces/GooglePlaces.h>
-#import <GooglePlacePicker/GooglePlacePicker.h>
 #import <React/RCTUtils.h>
 #import <React/RCTLog.h>
 
@@ -15,7 +14,6 @@
 
 	RCTPromiseResolveBlock _resolve;
 	RCTPromiseRejectBlock _reject;
-	GMSPlacePicker *_placePicker;
 }
 
 - (instancetype)init 
@@ -27,7 +25,9 @@
 }
 
 - (void)openAutocompleteModal: (GMSAutocompleteFilter *)autocompleteFilter
-                       bounds: (GMSCoordinateBounds *)bounds
+                    placeFields: (GMSPlaceField)selectedFields
+                       bounds: (GMSCoordinateBounds *)autocompleteBounds
+                       boundsMode: (GMSAutocompleteBoundsMode)autocompleteBoundsMode
                      resolver: (RCTPromiseResolveBlock)resolve
                      rejecter: (RCTPromiseRejectBlock)reject;
 {
@@ -36,35 +36,13 @@
     
     GMSAutocompleteViewController *viewController = [[GMSAutocompleteViewController alloc] init];
     viewController.autocompleteFilter = autocompleteFilter;
-    viewController.autocompleteBounds = bounds;
+    viewController.autocompleteBounds = autocompleteBounds;
+    viewController.autocompleteBoundsMode = autocompleteBoundsMode;
+    viewController.placeFields = selectedFields;
 	viewController.delegate = self;
     UIViewController *topController = [self getTopController];
 	[topController presentViewController:viewController animated:YES completion:nil];
 }
-
-- (void)openPlacePickerModal: (GMSCoordinateBounds *)bounds
-                    resolver: (RCTPromiseResolveBlock)resolve
-					rejecter: (RCTPromiseRejectBlock)reject;
-{
-	_resolve = resolve;
-	_reject = reject;
-
-	GMSPlacePickerConfig *config = [[GMSPlacePickerConfig alloc] initWithViewport:bounds];
-    _placePicker = [[GMSPlacePicker alloc] initWithConfig:config];
-    [_placePicker pickPlaceWithCallback:^(GMSPlace *place, NSError *error) {
-        if (place) {
-            if (_resolve) {
-		        _resolve([NSMutableDictionary dictionaryWithGMSPlace:place]);
-		    }
-        } else if (error) {
-            _reject(@"E_PLACE_PICKER_ERROR", [error localizedDescription], nil);
-
-        } else {
-            _reject(@"E_USER_CANCELED", @"Search cancelled", nil);
-        }
-    }];
-}
-
 
 // Handle the user's selection.
 - (void)viewController:(GMSAutocompleteViewController *)viewController
