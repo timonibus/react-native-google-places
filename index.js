@@ -11,7 +11,6 @@ class RNGooglePlaces {
 		country: '',
 		useOverlay: false,
 		initialQuery: '',
-		useSessionToken: true,
 		locationBias: {
 			latitudeSW: 0,
 			longitudeSW: 0,
@@ -48,6 +47,10 @@ class RNGooglePlaces {
 
 	getCurrentPlace(placeFields = []) {
 		return RNGooglePlacesNative.getCurrentPlace([...RNGooglePlaces.placeFieldsDefaults, ...placeFields])
+	}
+
+	resetSession() {
+		return RNGooglePlacesNative.resetSession();
 	}
 }
 

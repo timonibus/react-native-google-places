@@ -73,6 +73,8 @@ public class RNGooglePlacesModule extends ReactContextBaseJavaModule implements 
     public static int AUTOCOMPLETE_REQUEST_CODE = 360;
     public static String REACT_CLASS = "RNGooglePlaces";
 
+    private AutocompleteSessionToken sessionToken;
+
     public RNGooglePlacesModule(ReactApplicationContext reactContext) {
         super(reactContext);
 
@@ -84,6 +86,8 @@ public class RNGooglePlacesModule extends ReactContextBaseJavaModule implements 
         }
 
         placesClient = Places.createClient(reactContext.getApplicationContext());
+
+        this.resetSession();
 
         this.reactContext = reactContext;
         this.reactContext.addActivityEventListener(this);
@@ -234,7 +238,7 @@ public class RNGooglePlacesModule extends ReactContextBaseJavaModule implements 
         requestBuilder.setTypeFilter(getFilterType(type));
 
         if (useSessionToken) {
-            requestBuilder.setSessionToken(AutocompleteSessionToken.newInstance());
+            requestBuilder.setSessionToken(this.sessionToken);
         }
             
         Task<FindAutocompletePredictionsResponse> task =
@@ -316,6 +320,11 @@ public class RNGooglePlacesModule extends ReactContextBaseJavaModule implements 
         if (checkPermission(ACCESS_FINE_LOCATION)) {
             findCurrentPlaceWithPermissions(selectedFields, promise);
         }
+    }
+
+    @ReactMethod
+    public void resetSession() {
+        this.sessionToken = AutocompleteSessionToken.newInstance();
     }
 
     /**

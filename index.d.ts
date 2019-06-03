@@ -603,6 +603,8 @@ declare module "react-native-google-places" {
       placeID: string, placeFields: K[]
     ): Promise<Pick<GMSTypes.Place, (typeof placeFields)[number]>>;
 
+    public resetSession(): string;
+
     /**
      * This method returns to you the place where the device is currently
      * located (that is, the place at the device's currently-reported location).
