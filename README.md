@@ -13,7 +13,7 @@ iOS/Android Google Places Widgets (Autocomplete Modal) and API Services for Reac
 <img width=200 title="Place Picker Open - iOS" src="./shots/picker-ios.png">
 
 ## Versioning:
-- for RN >= 0.40.0, use v3+ (e.g. react-native-google-places@3.0.1)
+- for RN >= 0.40.0, use v3+ (e.g. react-native-google-places@3.1.0)
 - If you are still using the v2 of this library, you really should not, then **[Version 2 Documentations](/READMEV2.md)**
 
 ## Sample App
@@ -32,29 +32,12 @@ iOS/Android Google Places Widgets (Autocomplete Modal) and API Services for Reac
 ### Package installation
 ```
 npm i react-native-google-places --save
-react-native link react-native-google-places
 ```
 OR
 
 ```
 yarn add react-native-google-places
-react-native link react-native-google-places
 ```
-
-### Install with Cocoapods instead of react-native link
-Add the following to your Podfile, 
-```
-pod 'react-native-google-places', :path => 'node_modules/react-native-google-places'
-```
-
-and run 
-```
-yarn add react-native-google-places
-pod install
-```
-
-The right dependencies will be automatically installed for you. Make sure to add your API-keys 
-as stated below.
 
 #### Google Places API Set-Up
 1. Sign up for [Google Places & Google Maps APIs for Android in Google API Console](https://cloud.google.com/maps-platform/#get-started) to grab your Android API key (not browser key).
@@ -64,35 +47,62 @@ as stated below.
 5. [Enable billing](https://console.cloud.google.com/project/_/billing/enable) for your projects - **please do not file any issues on this repo without first checking you have, indeed, enabled billing on your account**.
 6. With both keys in place, you can proceed.
 
-#### Post-install Steps
+#### Post-Install Steps (iOS)
 
-##### iOS (requires CocoaPods)
-
-##### Auto Linking With Your Project (iOS & Android)
-- This was done automatically for you when you ran `react-native link react-native-google-places`. Or you can run the command now if you have not already.
-
-##### Manual Linking With Your Project (iOS)
-- In XCode, in the project navigator, right click `Libraries ➜ Add Files to [your project's name]`.
-- Go to `node_modules` ➜ `react-native-google-places` and add `RNGooglePlaces.xcodeproj`.
-- In XCode, in the project navigator, select your project. Add `libRNGooglePlaces.a` to your project's `Build Phases` ➜ `Link Binary With Libraries`.
-
-##### Install CocoaPods Dependencies
+##### 1) Auto Linking & Cocoapods Integration
 - If you do not have CocoaPods already installed on your machine, run `gem install cocoapods` to set it up the first time. (Hint: Go grab a cup of coffee!)
-- If you are not using Cocoapods in your project already, run `cd ios && pod init` at the root directory of your project.
-- Add `pod 'GooglePlaces'`, `pod 'GooglePlacePicker'` and `pod 'GoogleMaps'` to your Podfile. Ensure you pull in version 3.1.0 or higher for both the `GooglePlaces` and `GoogleMaps` libraries. Otherwise just edit your Podfile to include:
+- If you are not using Cocoapods in your project already, run `cd ios && pod init` at the root directory of your project. This would create a `Podfile` in your `ios` directory.
+- Run `react-native link react-native-google-places` at the root directory of your project and ensure you edit your Podfile to look like the sample below (remove all the targets you are not building for, such as Tests and tvOS):
 
 ```ruby
-source 'https://github.com/CocoaPods/Specs.git'
+# platform :ios, '9.0'
 
-target 'YOUR_APP_TARGET_NAME' do
+target '_YOUR_PROJECT_TARGET_' do
 
-  pod 'GooglePlaces'
-  pod 'GoogleMaps'
+  # Pods for _YOUR_PROJECT_TARGET_
+  pod 'React', :path => '../node_modules/react-native', :subspecs => [
+    'Core',
+    'CxxBridge',
+    'DevSupport',
+    'RCTText',
+    'RCTImage',
+    'RCTNetwork',
+    'RCTWebSocket',
+    'RCTSettings',
+    'RCTAnimation',
+    'RCTLinkingIOS',
+    # Add any other subspecs you want to use in your project
+    # Remove any subspecs you don't want to use in your project
+  ]
+
+  pod "yoga", :path => "../node_modules/react-native/ReactCommon/yoga"
+  pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
+  pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
+  pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
+  # This should already be auto-added for you, if not add the line below
+  pod 'react-native-google-places', :path => '../node_modules/react-native-google-places'
 
 end
-```
-- Run `pod install` or `pod update` from the `ios directory` to get started.
 
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    if target.name == 'react-native-google-places'
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_ENABLE_MODULES'] = 'No'
+      end
+    end
+    if target.name == "React"
+      target.remove_from_project
+    end
+  end
+end
+```
+
+- Replace all references to _YOUR_PROJECT_TARGET_ with your project target (it's the same as project name by default).
+- By now, you should be all set to install the packages from your Podfile. Run `pod install` from your `ios` directory.
+- Close Xcode, and then open (double-click) your project's .xcworkspace file to launch Xcode. From this time onwards, you must use the `.xcworkspace` file to open the project. Or just use the `react-native run-ios` command as usual to run your app in the simulator.
+
+##### 2) Configuration on iOS
 - In your `AppDelegate.m` file, import the Google Places library by adding 
 ```objectivec
     @import GooglePlaces; 
@@ -114,10 +124,12 @@ on top of the file.
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>RNGPDemos needs your location to show you places</string>
 ```
-- By now, you should be all set to install the packages from your Podfile. Run `pod install` from your `ios` directory.
-- Close Xcode, and then open (double-click) your project's .xcworkspace file to launch Xcode. From this time onwards, you must use the `.xcworkspace` file to open the project. Or just use the `react-native run-ios` command as usual to run your app in the simulator.
 
-##### Android
+
+#### Post-Install Steps (Android)
+
+##### Auto Linking With Your Project
+- This was done automatically for you when you ran `react-native link react-native-google-places`. Or you can run the command now if you have not already.
 - In your `AndroidManifest.xml` file, request the following permissions:
 
 ```xml
@@ -452,9 +464,8 @@ OR
 
 **PLACE FIELDS**
 - To prevent yourself from incurring huge usage bill, you can select the result fields you need in your application. Pass an *(optional)* `placeFields` as the second param to `lookUpPlaceByID`.
-- **placeFields** is an **`Array`** of `String` such as `placeID`, `location`, `name`, `address`, `types`, `openingHours`, `plusCode`, `rating`, `userRatingsTotal`, `viewport`.
+- **placeFields** is an **`Array`** of `String` such as `placeID`, `location`, `name`, `address`, `types`, `openingHours`, `plusCode`, `rating`, `userRatingsTotal`, `viewport`, `addressComponents`, `website`, `phoneNumber`, and `phoneNumber`.
 - Defaults to an empty array which returns every field possible for the particular place.
-- Place note that requesting for `website`, `phoneNumber`, `phoneNumber` and `addressComponents` are not supported when calling `lookUpPlaceByID`.
 
 #### Example Response from Calling lookUpPlaceByID()
 
@@ -502,7 +513,7 @@ You would have to do a bit more work to properly secure and move your API key ou
 source 'https://rubygems.org'
 
 gem 'cocoapods'
-gem 'cocoapods-keys
+gem 'cocoapods-keys'
 ```
 
 - Install the [cocoapods-keys](https://github.com/orta/cocoapods-keys) CocoaPod plugin by running the following on your terminal from your `/ios` directory:
@@ -529,7 +540,7 @@ end
 - Consult the [usage](https://github.com/orta/cocoapods-keys#usage) and [alternative usage](https://github.com/orta/cocoapods-keys#alternative-usage) sections of the `cocoapods-keys` repo to learn how to add your API key to keychain on the Mac.
 - Set up your key with `cocoapods-keys` with either of the instructions from the line above.
 - Run `pod install` again from your `/ios` directory.
-- Replace the string versions of your key in your `AppDelegate.m` file. You can review a sample usgae in the [Sample App](https://github.com/tolu360/RNGPDemos)
+- Replace the string versions of your key in your `AppDelegate.m` file. You can review a sample usage in the [Sample App](https://github.com/tolu360/RNGPDemos)
 - You may skip these steps and continue to have your API key directly in `AppDelegate.m`, things would work just as fine.
 
 
